@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 const (
 	StatusConnected = iota
 	StatusDisconnected
@@ -17,9 +16,10 @@ const (
 )
 
 type ServerService struct {
-	server domain.Server
-	conn   net.Conn
-	done   chan struct{}
+	server     domain.Server
+	conn       net.Conn
+	done       chan struct{}
+	lastUpdate time.Time
 }
 
 func NewServerService() *ServerService {
@@ -27,12 +27,7 @@ func NewServerService() *ServerService {
 }
 
 func (ss *ServerService) Connect(srv domain.Server) error {
-	// ss.server = srv
-	// conn, err := net.Dial("udp", srv.Addr)
-	// if err != nil {
-	// 	return err
-	// }
-	// ss.conn = conn
+	time.Sleep(1 * time.Second)
 	return nil
 }
 
@@ -58,6 +53,6 @@ func (ss *ServerService) Update(server domain.Server) error {
 	return config.UpdateServer(server)
 }
 
-func (ss *ServerService) GetServers() []domain.Server{
+func (ss *ServerService) GetServers() []domain.Server {
 	return config.GetServers()
 }

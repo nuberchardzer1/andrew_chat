@@ -1,6 +1,6 @@
 package types
 
-type Position uint8
+type Position int8
 
 const (
 	PositionLeft Position = 1 << iota
@@ -14,7 +14,7 @@ const (
 	PositionBotLeft  Position = PositionLeft | PositionBot
 	PositionTopRight Position = PositionRight | PositionTop
 	PositionBotRight Position = PositionRight | PositionBot
-	PositionSentinel Position = 0
+	PositionSentinel Position = -1
 )
 
 func (p Position) IsTop() bool {

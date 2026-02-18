@@ -4,7 +4,6 @@ import (
 	"andrew_chat/intenal/color"
 	"andrew_chat/intenal/config"
 	"andrew_chat/intenal/server"
-	"andrew_chat/intenal/ui"
 	uisrv "andrew_chat/intenal/ui/server"
 	"andrew_chat/intenal/ui/types"
 	wm "andrew_chat/intenal/ui/window_manager"
@@ -56,29 +55,22 @@ type MainModel struct {
 func NewMainModel() *MainModel {
 	wm := wm.NewWM()
 	return &MainModel{
-		wm:           wm,
-		status:       "disconnected",
-	
+		wm:     wm,
+		status: "disconnected",
 	}
 }
 
-
-func navCmd(pos types.Position, model types.ComponentModel) tea.Cmd {
+func navCmd(pos types.Position, model tea.Model) tea.Cmd {
 	return func() tea.Msg {
-		return types.CreateWindowMsg{Pos: pos, Model: model}
+		return types.CreateWindowMsg{Pos: pos, Model: model, Focus: true}
 	}
 }
 
 func (m *MainModel) Init() tea.Cmd {
 	return tea.Sequence(
-		// navCmd(types.PositionBotLeft, components.NewDummy()),
-		navCmd(types.PositionTopRight, ui.NewDummy()),		
 		navCmd(types.PositionTopLeft, uisrv.NewServer(config.GetServers())),
-		// navCmd(types.PositionBotRight, components.NewDummy()),
 	)
 }
-
-var testDummy = ui.NewDummy()
 
 func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -91,21 +83,11 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				types.CreateWindowMsg{
 					Pos:   types.PositionTopLeft,
 					Model: uisrv.NewServer(config.GetServers()),
+					Focus: true,
 				},
-				)
+			)
 		case tea.KeyF3:
-			m.wm.Update(
-				types.CreateWindowMsg{
-					Pos:   types.PositionTopRight,
-					Model: testDummy,
-				},
-			)
 		case tea.KeyF5:
-			m.wm.Update(
-				types.DeleteWindowMsg{
-					Model: testDummy,
-				},
-			)
 		case tea.KeyF10, tea.KeyCtrlC:
 			return m, tea.Quit
 		default:
@@ -120,10 +102,8 @@ func (m *MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			Height: m.height - types.HeaderHeight - types.FooterHeight,
 		})
 	case types.ServerMsg:
-		if msg.Success {
-			m.status = matchServerStatus(msg.Status)
-			m.server = msg.Server.Address
-		}
+		m.status = matchServerStatus(msg.Status)
+		m.server = msg.Server.Address
 	default:
 		_, cmd := m.wm.Update(msg)
 		return m, cmd

@@ -14,7 +14,7 @@ const logFile = "log.txt"
 
 func main() {
 	fmt.Println("andrew chat started")
-	config.InitConfig("config.json")
+	config.InitConfig("example.json")
 
 	file, err := os.OpenFile(logFile, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {

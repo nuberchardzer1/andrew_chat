@@ -14,21 +14,21 @@ type Config struct {
 	Servers []domain.Server `json:"servers"`
 }
 
-func InitConfig(path string){
-    data, err := os.ReadFile(path)
-    if err != nil {
-        panic(err.Error())
-    }
+func InitConfig(path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	configPath = path
-    var cfg Config
+	var cfg Config
 
-    if err = json.Unmarshal(data, &cfg); err != nil {
-        panic("Config corrupted, creating new one")
-        
-    }
+	if err = json.Unmarshal(data, &cfg); err != nil {
+		panic("Config corrupted, creating new one")
 
-    globalConfig = &cfg
+	}
+
+	globalConfig = &cfg
 }
 
 func save() error {

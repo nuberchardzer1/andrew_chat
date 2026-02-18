@@ -1,0 +1,32 @@
+{
+  "servers": [
+    {
+      "id": "srv-001",
+      "name": "Production Server EU (updated)",
+      "address": "192.168.1.10",
+      "port": 443,
+      "protocol": "https",
+      "username": "admin",
+      "description": "Main production server",
+      "environment": "prod",
+      "region": "eu-central",
+      "active": true,
+      "created_at": "2026-02-16T10:00:00Z",
+      "updated_at": "2026-02-18T16:30:36.797967753Z"
+    },
+    {
+      "id": "srv-003",
+      "name": "Development Server",
+      "address": "127.0.0.1",
+      "port": 8080,
+      "protocol": "http",
+      "username": "dev",
+      "description": "Local development server",
+      "environment": "dev",
+      "region": "local",
+      "active": true,
+      "created_at": "2026-02-16T10:00:00Z",
+      "updated_at": "2026-02-16T10:00:00Z"
+    }
+  ]
+}

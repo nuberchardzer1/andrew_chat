@@ -6,27 +6,28 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func NewDeleteCmd(model types.ComponentModel)tea.Cmd{
+func NewDeleteCmd(model tea.Model) tea.Cmd {
 	return func() tea.Msg {
 		return types.DeleteWindowMsg{
-					Model: model,
-				}
+			Model: model,
+		}
 	}
 }
 
-func NewCreateCmd(pos types.Position, model types.ComponentModel)tea.Cmd{
+func NewCreateCmd(pos types.Position, model tea.Model, focus bool) tea.Cmd {
 	return func() tea.Msg {
 		return types.CreateWindowMsg{
-					Pos: pos,
-					Model: model,
-				}
+			Pos:   pos,
+			Model: model,
+			Focus: focus,
+		}
 	}
 }
 
-func NewErrCmd(text string)tea.Cmd{
+func NewErrCmd(text string) tea.Cmd {
 	return func() tea.Msg {
 		return types.ErrMsg{
-					Text: text,
-				}
+			Text: text,
+		}
 	}
 }

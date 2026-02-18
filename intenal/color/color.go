@@ -17,15 +17,15 @@ type ColorScheme struct {
 	TextBase        *ColorFrame
 	TextBaseDark    *ColorFrame
 	TextHighlight   *ColorFrame
-	Title  		    *ColorFrame
+	Title           *ColorFrame
 	ServerStatus    map[string]*ColorFrame
 
 	//input
-	Placeholder     *ColorFrame
-	ButtonFocused   *ColorFrame
-	ButtonBlurred   *ColorFrame
-	Help            *ColorFrame
-	CursorHelp      *ColorFrame
+	Placeholder   *ColorFrame
+	ButtonFocused *ColorFrame
+	ButtonBlurred *ColorFrame
+	Help          *ColorFrame
+	CursorHelp    *ColorFrame
 }
 
 func PinkAndrewScheme() *ColorScheme {

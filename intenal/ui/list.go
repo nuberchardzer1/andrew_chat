@@ -9,11 +9,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-//wrapper for list.Model
-type List struct{
+// wrapper for list.Model
+type List struct {
 	listview list.Model
 }
-
 
 func (m *List) Init() tea.Cmd {
 	return nil
@@ -39,13 +38,12 @@ func (m *List) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 }
 
-
 func (m *List) View() string {
 	return m.listview.View()
 }
 
-func NewList(items []list.Item, delegate list.ItemDelegate, 
-	width int, height int) *List{
+func NewList(items []list.Item, delegate list.ItemDelegate,
+	width int, height int) *List {
 	listview := list.New(items, delegate, width, height)
 
 	// change Filter and cursor foregorund colors
@@ -62,12 +60,12 @@ func NewList(items []list.Item, delegate list.ItemDelegate,
 	listview.SetShowPagination(false)
 	listview.SetFilteringEnabled(false)
 	// listview.SetShowFilter(true)
-	
+
 	var list List
 	list.listview = listview
 	return &list
 }
 
-func (m *List) SelectedItem() list.Item{
+func (m *List) SelectedItem() list.Item {
 	return m.listview.SelectedItem()
 }

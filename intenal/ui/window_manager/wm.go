@@ -1,7 +1,6 @@
 package wm
 
 import (
-	// "andrew_chat/intenal/tui/windows"
 	"andrew_chat/intenal/color"
 	"andrew_chat/intenal/debug"
 	"andrew_chat/intenal/ui/keys"
@@ -15,15 +14,27 @@ import (
 
 const notFocused = types.PositionSentinel
 
-// implements bubbletea.model
+type window struct {
+	model tea.Model
+	pos   types.Position
+}
 
+func newWindow(pos types.Position, m tea.Model) window {
+	return window{
+		m, pos,
+	}
+}
+
+// implements bubbletea.model
 type WindowManager struct {
-	windows map[types.Position]types.ComponentModel
+	//visible windows
+	windows map[types.Position]tea.Model
 	focus   types.Position
 	width   int
 	height  int
 
-	stack            []types.ComponentModel //when add window to stack it grows when delete evict
+	//TODO: struct for stack
+	stack            []window
 	leftWindowWidth  int
 	rightWindowWidth int
 }
@@ -69,7 +80,8 @@ func (wm *WindowManager) getWindowHeightWithoutBorder(p types.Position) int {
 	return totalAvailable / count
 }
 
-func (wm *WindowManager) removeWindow(win types.ComponentModel) {
+func (wm *WindowManager) closeWindow(win tea.Model) {
+	debug.DebugDump(debug.V, "Remove get", win)
 	p := types.PositionSentinel
 	for pos, w := range wm.windows {
 		if w == win {
@@ -81,28 +93,53 @@ func (wm *WindowManager) removeWindow(win types.ComponentModel) {
 		panic("delete unknown model not allowed")
 	}
 
-	debug.DebugDump(debug.V, fmt.Sprintf("Remove window position: %d", p), win) 
-	if wm.focus == p {
-		wm.nextPosition()
-	}
+	debug.DebugDump(debug.V, fmt.Sprintf("Remove window pos: %d", p), win)
 	delete(wm.windows, p)
+
+	idx := -1
+
+	for i := range wm.stack {
+		if wm.stack[i].model == win {
+			idx = i
+			break
+		}
+	}
+
+	if idx == -1 {
+		panic("inconsistent stack and windows")
+	}
+
+	wm.stack = append(wm.stack[:idx], wm.stack[idx+1:]...)
+	if len(wm.stack) == 0 {
+		wm.focus = notFocused
+	} else if wm.focus == p {
+		wm.focus = wm.stack[len(wm.stack)-1].pos
+	}
+
 	wm.updateWindows()
 }
 
-func (wm *WindowManager) setWindow(p types.Position, win types.ComponentModel) {
+func (wm *WindowManager) addWindow(p types.Position, win tea.Model, focus bool) {
 	if win == nil {
 		panic("set nil window not allowed")
 	}
 
-	if p.IsBot() {
-		if wm.getWindow(p.SetTop()) == nil {
-			panic("bot hasnt top sibling")
+	wm.windows[p] = win
+
+	if focus {
+		wm.stack = append(wm.stack, newWindow(p, win))
+		wm.focus = p
+	} else {
+		newStack := make([]window, len(wm.stack)+1)
+		newStack[0] = newWindow(p, win)
+		copy(newStack[1:], wm.stack)
+		wm.stack = newStack
+		if wm.focus == notFocused {
+			wm.focus = p
 		}
 	}
-	wm.windows[p] = win
-	wm.focus = p
 
-	debug.DebugDump(debug.V, fmt.Sprintf("SET WINDOW POSITION: %d", p), win)
+	debug.DebugDump(debug.V, fmt.Sprintf("Add window pos: %d, focus: %d", p, focus), win)
 	win.Init()
 	wm.updateWindows()
 }
@@ -116,6 +153,21 @@ func (wm *WindowManager) getWindow(p types.Position) tea.Model {
 
 func (wm *WindowManager) nextPosition() {
 	pos := wm.focus
+	defer func() {
+		if wm.focus == notFocused {
+			return
+		}
+
+		win := wm.windows[wm.focus]
+		size := len(wm.stack)
+		for i := size - 1; i >= 0; i-- {
+			if wm.stack[i].model == win {
+				wm.stack[i], wm.stack[size-1] = wm.stack[size-1], wm.stack[i]
+				return
+			}
+		}
+		panic("inconsistent stack and windows")
+	}()
 
 	if pos.IsTop() {
 		newPos := pos.SetBot()
@@ -148,13 +200,11 @@ func (wm *WindowManager) nextPosition() {
 			return
 		}
 	}
-
-	wm.focus = notFocused
 }
 
 func NewWM() *WindowManager {
 	return &WindowManager{
-		windows: make(map[types.Position]types.ComponentModel),
+		windows: make(map[types.Position]tea.Model),
 		focus:   notFocused,
 	}
 }
@@ -165,12 +215,13 @@ func (m *WindowManager) Init() tea.Cmd {
 
 func (wm *WindowManager) updateWindows() {
 	for pos, win := range wm.windows {
-		win.Update(
+		updated, _ := win.Update(
 			tea.WindowSizeMsg{
 				Height: wm.getWindowHeightWithoutBorder(pos),
 				Width:  wm.getWindowWidthWithoutBorder(pos),
 			},
 		)
+		wm.windows[pos] = updated
 	}
 }
 
@@ -183,6 +234,11 @@ func (m *WindowManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// These keys should exit the program.
 		case key.Matches(msg, keys.Keys.Next):
 			m.nextPosition()
+			return m, nil
+		case msg.String() == "ctrl+d":
+			if m.focus != notFocused {
+				m.closeWindow(m.stack[len(m.stack)-1].model)
+			}
 			return m, nil
 		default:
 			if m.focus != notFocused {
@@ -203,11 +259,11 @@ func (m *WindowManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.updateWindows()
 
 	case types.CreateWindowMsg:
-		m.setWindow(msg.Pos, msg.Model)
-
+		m.addWindow(msg.Pos, msg.Model, msg.Focus)
+		return m, msg.Model.Init()
 	case types.DeleteWindowMsg:
 		debug.DebugDump(debug.V, "WM DeleteWindowMsg", msg)
-		m.removeWindow(msg.Model)
+		m.closeWindow(msg.Model)
 
 	default:
 		if m.focus != notFocused {

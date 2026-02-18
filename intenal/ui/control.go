@@ -25,42 +25,6 @@ type ControlPane struct {
 	listview list.Model
 }
 
-func (m *ControlPane) Init() tea.Cmd {
-	return nil
-}
-
-func (m *ControlPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, keys.Keys.Choose):
-			selectedItem := m.listview.SelectedItem()
-			if selectedItem == nil {
-				return m, nil
-			}
-			opt := selectedItem.(Option)
-			return m, opt.Action()
-		case key.Matches(msg, keys.Keys.Close):
-			return m, NewDeleteCmd(m)
-		}
-	case tea.WindowSizeMsg:
-		m.listview.SetSize(msg.Width, msg.Height)
-		return m, nil
-	case types.FilterMsg:
-		m.listview.SetFilterText(msg.Filter)
-		return m, nil
-	}
-
-	m.listview, cmd = m.listview.Update(msg)
-	return m, cmd
-}
-
-func (m *ControlPane) View() string {
-	return m.listview.View()
-}
-
 func NewControlPane(opts []Option) *ControlPane {
 	var items []list.Item
 	for _, opt := range opts {
@@ -82,4 +46,41 @@ func NewControlPane(opts []Option) *ControlPane {
 	return &ControlPane{
 		listview: listview,
 	}
+}
+
+func (m *ControlPane) Init() tea.Cmd {
+	return nil
+}
+
+func (m *ControlPane) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, keys.Keys.Choose):
+			selectedItem := m.listview.SelectedItem()
+			if selectedItem == nil {
+				return m, nil
+			}
+			opt := selectedItem.(Option)
+
+			return m, tea.Sequence(opt.Action(), NewDeleteCmd(m))
+		case key.Matches(msg, keys.Keys.Close):
+			return m, NewDeleteCmd(m)
+		}
+	case tea.WindowSizeMsg:
+		m.listview.SetSize(msg.Width, msg.Height)
+		return m, nil
+	case types.FilterMsg:
+		m.listview.SetFilterText(msg.Filter)
+		return m, nil
+	}
+
+	m.listview, cmd = m.listview.Update(msg)
+	return m, cmd
+}
+
+func (m *ControlPane) View() string {
+	return m.listview.View()
 }

@@ -27,18 +27,23 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
-type inputField struct{
+type InputFormAction func([]types.InputFieldValue) tea.Cmd
+
+type inputField struct {
 	types.InputFieldSpec
 	text textinput.Model
 }
 type InputFormModel struct {
+	action     InputFormAction
 	prompt     string
 	focusIndex int
 	cursorMode cursor.Mode
 	fields     []inputField
 }
 
-func NewInputFormModel(prompt string, specs []types.InputFieldSpec) *InputFormModel {
+func NewInputFormModel(prompt string, specs []types.InputFieldSpec,
+	action InputFormAction) *InputFormModel {
+
 	fields := make([]inputField, len(specs))
 	for i, f := range specs {
 		t := textinput.New()
@@ -55,6 +60,7 @@ func NewInputFormModel(prompt string, specs []types.InputFieldSpec) *InputFormMo
 		}
 	}
 	return &InputFormModel{
+		action:     action,
 		prompt:     prompt,
 		focusIndex: 0,
 		cursorMode: cursor.CursorBlink,
@@ -84,6 +90,7 @@ func (m *InputFormModel) updateFocus() tea.Cmd {
 }
 
 func (m *InputFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
@@ -110,12 +117,9 @@ func (m *InputFormModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					}
 				}
 
-				ifm := func() tea.Msg {
-					return types.InputFormMsg{
-						Fields: values,
-					}
-				}
-				return m, tea.Batch(ifm, NewDeleteCmd(m))
+				cmd := m.action(values)
+				cmds = append(cmds, cmd, NewDeleteCmd(m))
+				return m, tea.Batch(cmds...)
 			}
 			if s == "shift+tab" {
 				m.focusIndex--

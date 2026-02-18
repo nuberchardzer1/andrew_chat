@@ -20,14 +20,14 @@ func SetupLogger(w io.Writer) {
 
 type Level int
 
-const(
+const (
 	None Level = iota
 	V
 	VV
 	VVV
 )
-var DEBUG Level = V
 
+var DEBUG Level = V
 
 func DebugDump(level Level, text string, objs ...any) {
 	if level == None {
