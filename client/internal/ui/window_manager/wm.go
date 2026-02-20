@@ -1,10 +1,10 @@
 package wm
 
 import (
-	"andrew_chat/intenal/color"
-	"andrew_chat/intenal/debug"
-	"andrew_chat/intenal/ui/keys"
-	"andrew_chat/intenal/ui/types"
+	"andrew_chat/client/internal/color"
+	"andrew_chat/client/internal/debug"
+	"andrew_chat/client/internal/ui/keys"
+	"andrew_chat/client/internal/ui/types"
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/key"

@@ -1,11 +1,11 @@
 package server
 
 import (
-	"andrew_chat/intenal/domain"
-	"andrew_chat/intenal/server"
-	"andrew_chat/intenal/ui"
-	"andrew_chat/intenal/ui/keys"
-	"andrew_chat/intenal/ui/types"
+	"andrew_chat/client/internal/domain"
+	"andrew_chat/client/internal/server"
+	"andrew_chat/client/internal/ui"
+	"andrew_chat/client/internal/ui/keys"
+	"andrew_chat/client/internal/ui/types"
 	"encoding/json"
 	"strconv"
 

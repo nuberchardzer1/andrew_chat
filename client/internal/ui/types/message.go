@@ -1,7 +1,7 @@
 package types
 
 import (
-	"andrew_chat/intenal/domain"
+	"andrew_chat/client/internal/domain"
 
 	tea "github.com/charmbracelet/bubbletea"
 )

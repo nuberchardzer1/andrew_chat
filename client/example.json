@@ -2,7 +2,7 @@
   "servers": [
     {
       "id": "srv-001",
-      "name": "Production Server EU (updated)",
+      "name": "Production Server EU",
       "address": "192.168.1.10",
       "port": 443,
       "protocol": "https",
@@ -12,18 +12,18 @@
       "region": "eu-central",
       "active": true,
       "created_at": "2026-02-16T10:00:00Z",
-      "updated_at": "2026-02-18T16:30:36.797967753Z"
+      "updated_at": "2026-02-16T10:00:00Z"
     },
     {
-      "id": "srv-003",
-      "name": "Development Server",
-      "address": "127.0.0.1",
-      "port": 8080,
-      "protocol": "http",
-      "username": "dev",
-      "description": "Local development server",
-      "environment": "dev",
-      "region": "local",
+      "id": "srv-002",
+      "name": "Staging Server",
+      "address": "192.168.1.20",
+      "port": 22,
+      "protocol": "ssh",
+      "username": "deploy",
+      "description": "Staging environment",
+      "environment": "staging",
+      "region": "eu-west",
       "active": true,
       "created_at": "2026-02-16T10:00:00Z",
       "updated_at": "2026-02-16T10:00:00Z"

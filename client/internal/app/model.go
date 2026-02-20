@@ -1,12 +1,12 @@
 package app
 
 import (
-	"andrew_chat/intenal/color"
-	"andrew_chat/intenal/config"
-	"andrew_chat/intenal/server"
-	uisrv "andrew_chat/intenal/ui/server"
-	"andrew_chat/intenal/ui/types"
-	wm "andrew_chat/intenal/ui/window_manager"
+	"andrew_chat/client/internal/color"
+	"andrew_chat/client/internal/config"
+	"andrew_chat/client/internal/server"
+	uisrv "andrew_chat/client/internal/ui/server"
+	"andrew_chat/client/internal/ui/types"
+	wm "andrew_chat/client/internal/ui/window_manager"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"

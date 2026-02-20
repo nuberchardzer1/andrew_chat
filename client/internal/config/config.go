@@ -1,7 +1,7 @@
 package config
 
 import (
-	"andrew_chat/intenal/domain"
+	"andrew_chat/client/internal/domain"
 	"encoding/json"
 	"errors"
 	"os"

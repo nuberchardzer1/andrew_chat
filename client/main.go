@@ -1,9 +1,9 @@
 package main
 
 import (
-	"andrew_chat/intenal/app"
-	"andrew_chat/intenal/config"
-	debug "andrew_chat/intenal/debug"
+	"andrew_chat/client/internal/app"
+	"andrew_chat/client/internal/config"
+	debug "andrew_chat/client/internal/debug"
 	"fmt"
 	"os"
 

@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"andrew_chat/intenal/ui/keys"
-	"andrew_chat/intenal/ui/types"
+	"andrew_chat/client/internal/ui/keys"
+	"andrew_chat/client/internal/ui/types"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"

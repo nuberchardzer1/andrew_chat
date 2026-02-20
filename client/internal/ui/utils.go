@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"andrew_chat/intenal/ui/types"
+	"andrew_chat/client/internal/ui/types"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
