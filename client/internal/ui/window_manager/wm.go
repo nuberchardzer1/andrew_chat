@@ -3,6 +3,7 @@ package wm
 import (
 	"andrew_chat/client/internal/color"
 	"andrew_chat/client/internal/debug"
+	"andrew_chat/client/internal/ui"
 	"andrew_chat/client/internal/ui/keys"
 	"andrew_chat/client/internal/ui/types"
 	"fmt"
@@ -12,7 +13,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-const notFocused = types.PositionSentinel
+const (
+	leftPanelWidthRatio  = 0.2
+	rightPanelWidthRatio = 0.8
+	notFocused = types.PositionSentinel
+)
 
 type window struct {
 	model tea.Model
@@ -44,9 +49,9 @@ func (wm *WindowManager) getWindowWidthWithoutBorder(p types.Position) int {
 		return 0
 	}
 	if p.IsLeft() {
-		return int(float32(wm.width)*0.2) - types.BorderSize
+		return int(float32(wm.width)*leftPanelWidthRatio) - types.BorderSize
 	} else if p.IsRight() {
-		return int(float32(wm.width)*0.8) - types.BorderSize
+		return int(float32(wm.width)*rightPanelWidthRatio) - types.BorderSize
 	}
 	panic("unknown position")
 }
@@ -55,17 +60,17 @@ func (wm *WindowManager) getWindowHeightWithoutBorder(p types.Position) int {
 	var count int
 
 	if p.IsLeft() {
-		if wm.getWindow(types.PositionTopLeft) != nil {
+		if wm.GetWindow(types.PositionTopLeft) != nil {
 			count++
 		}
-		if wm.getWindow(types.PositionBotLeft) != nil {
+		if wm.GetWindow(types.PositionBotLeft) != nil {
 			count++
 		}
 	} else if p.IsRight() {
-		if wm.getWindow(types.PositionTopRight) != nil {
+		if wm.GetWindow(types.PositionTopRight) != nil {
 			count++
 		}
-		if wm.getWindow(types.PositionBotRight) != nil {
+		if wm.GetWindow(types.PositionBotRight) != nil {
 			count++
 		}
 	} else {
@@ -73,14 +78,14 @@ func (wm *WindowManager) getWindowHeightWithoutBorder(p types.Position) int {
 	}
 
 	if count == 0 {
-		return 0
+		return wm.height - types.BorderSize
 	}
 
-	totalAvailable := wm.height - types.BorderSize*(count-1)
+	totalAvailable := wm.height - types.BorderSize*(count)
 	return totalAvailable / count
 }
 
-func (wm *WindowManager) closeWindow(win tea.Model) {
+func (wm *WindowManager) CloseWindow(win tea.Model)tea.Cmd{
 	debug.DebugDump(debug.V, "Remove get", win)
 	p := types.PositionSentinel
 	for pos, w := range wm.windows {
@@ -90,7 +95,8 @@ func (wm *WindowManager) closeWindow(win tea.Model) {
 		}
 	}
 	if p == types.PositionSentinel {
-		panic("delete unknown model not allowed")
+		// slog.Warn("try delete unknown window")
+		return nil
 	}
 
 	debug.DebugDump(debug.V, fmt.Sprintf("Remove window pos: %d", p), win)
@@ -104,7 +110,6 @@ func (wm *WindowManager) closeWindow(win tea.Model) {
 			break
 		}
 	}
-
 	if idx == -1 {
 		panic("inconsistent stack and windows")
 	}
@@ -116,12 +121,20 @@ func (wm *WindowManager) closeWindow(win tea.Model) {
 		wm.focus = wm.stack[len(wm.stack)-1].pos
 	}
 
-	wm.updateWindows()
+	return ui.NewReloadCmd()
 }
 
-func (wm *WindowManager) addWindow(p types.Position, win tea.Model, focus bool) {
+func (wm *WindowManager) AddWindow(p types.Position, win tea.Model, focus bool)tea.Cmd{
 	if win == nil {
 		panic("set nil window not allowed")
+	}
+
+	cmds := make([]tea.Cmd, 0)
+
+	//window already occupied
+	if oldWin, ok := wm.windows[p]; ok{
+		debug.DebugDump(debug.V, "OLD WIN", oldWin, ok)
+		cmds = append(cmds, ui.NewDeleteCmd(oldWin))
 	}
 
 	wm.windows[p] = win
@@ -139,12 +152,12 @@ func (wm *WindowManager) addWindow(p types.Position, win tea.Model, focus bool) 
 		}
 	}
 
-	debug.DebugDump(debug.V, fmt.Sprintf("Add window pos: %d, focus: %d", p, focus), win)
-	win.Init()
-	wm.updateWindows()
+	cmds = append(cmds, ui.NewReloadCmd())
+	debug.DebugDump(debug.V, fmt.Sprintf("Add window pos: %d, focus: %v", p, focus), win)
+	return tea.Batch(cmds...)
 }
 
-func (wm *WindowManager) getWindow(p types.Position) tea.Model {
+func (wm *WindowManager) GetWindow(p types.Position) tea.Model {
 	if win, ok := wm.windows[p]; ok {
 		return win
 	}
@@ -171,7 +184,7 @@ func (wm *WindowManager) nextPosition() {
 
 	if pos.IsTop() {
 		newPos := pos.SetBot()
-		if wm.getWindow(newPos) != nil {
+		if wm.GetWindow(newPos) != nil {
 			wm.focus = newPos
 			return
 		}
@@ -179,7 +192,7 @@ func (wm *WindowManager) nextPosition() {
 
 	if pos.IsLeft() {
 		newPos := pos.SetRight().SetTop()
-		if wm.getWindow(newPos) != nil {
+		if wm.GetWindow(newPos) != nil {
 			wm.focus = newPos
 			return
 		}
@@ -187,7 +200,7 @@ func (wm *WindowManager) nextPosition() {
 
 	if pos.IsRight() {
 		newPos := pos.SetLeft().SetTop()
-		if wm.getWindow(newPos) != nil {
+		if wm.GetWindow(newPos) != nil {
 			wm.focus = newPos
 			return
 		}
@@ -195,7 +208,7 @@ func (wm *WindowManager) nextPosition() {
 
 	if pos.IsBot() {
 		newPos := pos.SetTop()
-		if wm.getWindow(newPos) != nil {
+		if wm.GetWindow(newPos) != nil {
 			wm.focus = newPos
 			return
 		}
@@ -227,6 +240,7 @@ func (wm *WindowManager) updateWindows() {
 
 func (m *WindowManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	debug.DebugDump(debug.VV, "UPDATE", m, msg)
+	cmds := make([]tea.Cmd, 0)
 	switch msg := msg.(type) {
 	// Is it a key press?
 	case tea.KeyMsg:
@@ -235,11 +249,12 @@ func (m *WindowManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, keys.Keys.Next):
 			m.nextPosition()
 			return m, nil
+
 		case msg.String() == "ctrl+d":
-			if m.focus != notFocused {
-				m.closeWindow(m.stack[len(m.stack)-1].model)
+			if m.focus == notFocused {
+				return m, nil
 			}
-			return m, nil
+			return m, ui.NewDeleteCmd(m.stack[len(m.stack)-1].model)
 		default:
 			if m.focus != notFocused {
 				c := m.windows[m.focus]
@@ -256,14 +271,23 @@ func (m *WindowManager) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.leftWindowWidth = int(float32(m.width) * 0.2)
 		m.rightWindowWidth = m.width - m.leftWindowWidth
 
-		m.updateWindows()
+		return m, ui.NewReloadCmd()
 
 	case types.CreateWindowMsg:
-		m.addWindow(msg.Pos, msg.Model, msg.Focus)
-		return m, msg.Model.Init()
+		cmd := m.AddWindow(msg.Pos, msg.Model, msg.Focus)
+		return m, tea.Sequence(msg.Model.Init(), cmd, ui.NewReloadCmd()) //need m.updateWindows()?
+		
 	case types.DeleteWindowMsg:
 		debug.DebugDump(debug.V, "WM DeleteWindowMsg", msg)
-		m.closeWindow(msg.Model)
+		cmd := m.CloseWindow(msg.Model)
+		cmds = append(cmds, cmd)
+		_, cmd = msg.Model.Update(types.TerminateWindow{}) 
+		cmds = append(cmds, cmd)
+		return m, tea.Batch(cmds...)
+
+	case types.ReloadMsg:
+		m.updateWindows()
+		return m, nil
 
 	default:
 		if m.focus != notFocused {
@@ -287,7 +311,7 @@ func (wm *WindowManager) renderWindow(pos types.Position) string {
 	style := lipgloss.NewStyle().
 		Width(width).
 		Height(height).
-		Border(lipgloss.NormalBorder()).
+		Border(lipgloss.RoundedBorder()).
 		Align(lipgloss.Top) // FIX
 
 	if wm.focus == pos {

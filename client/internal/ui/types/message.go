@@ -19,8 +19,15 @@ type CreateWindowMsg struct {
 	Focus bool
 }
 
-// The message is an instruction to the window manager to delete the window.
+// DeleteWindowMsg is a message sent to the window manager
+// instructing it to delete the specified window.
 type DeleteWindowMsg struct {
+	Model tea.Model
+}
+
+// TerminateWindow is a signal indicating that the window
+// should terminate its execution and stop running.
+type TerminateWindow struct{
 	Model tea.Model
 }
 
@@ -31,3 +38,5 @@ type FilterMsg struct {
 type ErrMsg struct {
 	Text string
 }
+
+type ReloadMsg struct{}
